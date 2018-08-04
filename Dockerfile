@@ -1,2 +1,3 @@
 FROM gitlab/gitlab-runner:latest
-ENTRYPOINT ["/bin/bash", "-c", "/home/gitlab-runner/register-run.sh"]
+COPY run.sh /home/gitlab-runner/bin/run.sh
+ENTRYPOINT ["/bin/bash", "-c", "/home/gitlab-runner/bin/run.sh"]
