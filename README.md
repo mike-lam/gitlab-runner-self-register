@@ -1,10 +1,26 @@
 # gitlab-runner-self-register
 
-usage
------
-sudo docker run -v {location of register-run.sh}:/home/gitlab-runner -it mxl125/gitlab-runner-self-register:latest
+in the docker-compose.yml use
 
-register-run.sh
--------------------------
-/usr/bin/gitlab-runner register --non-interactive --executor "shell" --url "http://X.X.X.X" --registration-token "XXX" --description "gitlab_runner_shell" --tag-list "shell" --run-untagged="false" --locked="false"
-/usr/bin/gitlab-runner run --user=gitlab-runner --working-directory=/home/gitlab-runner
+```yaml
+  gitlab_runner_shell_01: 
+    image: 'mxl125/gitlab-runner-self-register:latest'
+    depends_on:
+       - "gitlab"
+    deploy:
+      placement:
+        constraints:
+          - node.labels.service == gitlab-runners
+    environment:
+      - GITLAB_URL=http://gitlab
+      - GITLAB_REGISTRATION_TOKEN=the registration token that gitlab produces on page http://gitlab/admin/runners
+      - GITLAB_RUNNER_TAGLIST=shell,{{.Service.Name}} 
+      - GITLAB_RUNNER_DESCRIPTION=simple shell on node {{.Node.Hostname}}
+    hostname: '{{.Service.Name}}'
+    privileged: true
+    restart: 'always'
+    volumes:
+      - 'gitlab_runner_shell_01-config:/etc/gitlab-runner'
+      - 'gitlab_runner_shell_01-home:/home/gitlab-runner'
+      - '/var/run/docker.sock:/var/run/docker.sock'
+```
